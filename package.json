@@ -1,5 +1,5 @@
 {
-  "name": "git and npm batch command",
+  "name": "gnb",
   "description" : "git and npm batch command tool",
   "dependencies" : {
     "commander": "^2.3.0",
@@ -14,5 +14,5 @@
   "bin": {
     "gnb": "./index.js"
   },
-  "version": "0.0.1"
+  "version": "0.0.2"
 }

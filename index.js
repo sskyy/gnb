@@ -10,24 +10,22 @@ var fs= require('fs'),
   _ = require('lodash')
 
 
-var modulePath = path.join(process.cwd(),"modules")
-var modules = fs.readdirSync(modulePath).filter(function(name){return !/^\./.test(name)})
-
 program
   .version('0.0.1')
   .usage('zero command line')
   .command("save [modules]")
   .option("-m --msg [msg]","msg to comment")
+  .option("-p --path <modulePath>","module path")
   .action(function( specifiedModules, options ){
     specifiedModules = specifiedModules ? specifiedModules.split(",") : modules
     var msg = options.msg || "auto save"
 
     async.forEachSeries(specifiedModules,function( module, nextModule){
-      fs.exists(path.join(modulePath,module,".git"), function(exist){
+      fs.exists(path.join(options.modulePath,module,".git"), function(exist){
         if( !exist){
           return console.log(err, module)
         }
-        gitCommitAndPush( path.join(modulePath,module), msg, nextModule)
+        gitCommitAndPush( path.join(options.modulePath,module), msg, nextModule)
       })
     })
   })
@@ -47,7 +45,8 @@ program.command("status <modulePath>")
   })
 
 program.command('publish [modules]')
-  .action(function( specifiedModules ){
+  .option("-p --path <modulePath>","module path")
+  .action(function( specifiedModules, options ){
     specifiedModules = specifiedModules ? specifiedModules.split(",") : modules
     console.log("begin to publish")
 
@@ -56,12 +55,12 @@ program.command('publish [modules]')
       if( err) return console.log( err )
 
       async.forEachSeries(specifiedModules,function( module, nextModule){
-        fs.exists(path.join(modulePath,module), function(exist){
+        fs.exists(path.join(options.modulePath,module), function(exist){
           if( !exist){
             nextModule()
             return console.log(err, module)
           }
-          npmPublish( path.join(modulePath,module), nextModule)
+          npmPublish( path.join(options.modulePath,module), nextModule)
         })
       })
     })
@@ -70,7 +69,6 @@ program.command('publish [modules]')
 program.command('release <modulePath>')
   .option("-m --msg [msg]","msg to comment")
   .action(function(modulePath,options){
-    //TODO increase version => git commit =>  git push => npm publish
     var absoluteModulePath = path.join(process.cwd(),modulePath)
 
     var packageInfo = fse.readJsonSync( path.join(absoluteModulePath,"package.json"))
@@ -91,32 +89,16 @@ program.command('release <modulePath>')
     })
   })
 
-
-program.command('setVersion <version>')
-  .action(function( version){
-    async.forEachSeries(modules,function( module, nextModule){
-      var packageInfo = fse.readJsonSync( path.join(modulePath,module,"package.json"))
-      if( version ){
-        packageInfo.version = version
-      }else{
-
-        packageInfo.version = increaseVersion( packageInfo.version)
-      }
-
-      fse.outputJsonSync( path.join(modulePath,module,"package.json"), packageInfo)
-      nextModule()
-    })
-  })
-
 program.command("checkout")
-  .action(function(){
+  .option("-p --path <modulePath>","module path")
+  .action(function(options){
     async.forEachSeries(modules,function( module, nextModule){
       console.log( ("\n"+module).green)
-      fs.exists(path.join(modulePath,module,".git"), function(exist){
+      fs.exists(path.join(options.modulePath,module,".git"), function(exist){
         if( !exist){
           return console.log(err, module)
         }
-        checkout( path.join(modulePath,module), nextModule)
+        checkout( path.join(options.modulePath,module), nextModule)
       })
     })
   })
