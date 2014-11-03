@@ -32,7 +32,9 @@ program
 
 program.command("status <modulePath>")
   .action(function( modulePath, options){
-    var absoluteModulePath = path.join(process.cwd(),modulePath)
+    var absoluteModulePath = path.join(process.cwd(),modulePath),
+      modules = fs.readdirSync( absoluteModulePath).filter(function(r){return !/^\./.test(r)})
+
     async.forEachSeries(modules,function( module, nextModule){
       console.log( ("\n"+module).green)
       fs.exists(path.join(absoluteModulePath,module,".git"), function(exist){
