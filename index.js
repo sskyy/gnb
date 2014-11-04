@@ -30,8 +30,9 @@ program
     })
   })
 
-program.command("status <modulePath>")
+program.command("status [modulePath]")
   .action(function( modulePath, options){
+    modulePath = modulePath || process.cwd()
     var absoluteModulePath = path.join(process.cwd(),modulePath),
       modules = fs.readdirSync( absoluteModulePath).filter(function(r){return !/^\./.test(r)})
 
